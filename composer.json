@@ -1,0 +1,54 @@
+{
+  "name": "ispahbod/laravel-zarinpal",
+  "description": "Zarinpal payment for Laravel Framework",
+  "license": "MIT",
+  "type": "library",
+  "keywords": [
+    "zarinpal",
+    "payment",
+    "laravel",
+    "framework",
+    "php"
+  ],
+  "authors": [
+    {
+      "name": "Hamed Hadi",
+      "email": "hamed.hadi1010@gmail.com",
+      "homepage": "https://github.com/iSpahbod",
+      "role": "Developer"
+    }
+  ],
+  "homepage": "https://github.com/isphabod/laravel-zarinpal",
+  "require": {
+    "php": "^8.0",
+    "guzzlehttp/guzzle": "^7.2.0",
+    "illuminate/support": ">=6"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^8"
+  },
+  "minimum-stability": "stable",
+  "autoload": {
+    "psr-4": {
+      "Ispahbod\\Zarinpal\\": "src"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Ispahbod\\Zarinpal\\Tests\\": "tests"
+    }
+  },
+  "config": {
+    "sort-packages": true
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Ispahbod\\Zarinpal\\ZarinpalServiceProvider"
+      ]
+    }
+  },
+  "scripts": {
+    "test": "vendor/bin/phpunit"
+  }
+}

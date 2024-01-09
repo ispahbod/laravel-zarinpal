@@ -1,2 +1,2 @@
-# laravel-zarinpal
-Elegant Zarinpal gateway for Laravel
+# zarinpal-laravel
+Zarinpal payment for Laravel Framework
