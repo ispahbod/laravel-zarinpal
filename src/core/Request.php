@@ -83,7 +83,7 @@ class Request
     {
         $this->client = new Client();
         $this->merchantId = $merchantId;
-        $this->currency = config('zarinpal.currency', 'IRR');
+        $this->currency = 'IRR';
     }
 
     /**
@@ -215,7 +215,7 @@ class Request
                     'Accept' => 'application/json'
                 ],
                 'json' => $json,
-                'verify' => config('zarinpal.ssl', false)
+                'verify' => false
             ]);
             $statusCode = $response->getStatusCode();
             if ($statusCode == 200) {

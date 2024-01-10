@@ -41,13 +41,6 @@
   "config": {
     "sort-packages": true
   },
-  "extra": {
-    "laravel": {
-      "providers": [
-        "Ispahbod\\Zarinpal\\ZarinpalServiceProvider"
-      ]
-    }
-  },
   "scripts": {
     "test": "vendor/bin/phpunit"
   }

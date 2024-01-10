@@ -17,9 +17,9 @@ class Zarinpal
      * Constructor for Zarinpal class
      * @param string $merchantId Merchant ID for Zarinpal
      */
-    public function __construct()
+    public function __construct($merchant_id)
     {
-        $this->merchantId = config('zarinpal.merchant_id', 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx');
+        $this->merchantId = $merchant_id;
     }
 
     public function verify(array $array)

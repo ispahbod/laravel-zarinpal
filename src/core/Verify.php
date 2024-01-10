@@ -24,6 +24,7 @@ class Verify
     /**
      * Constructor for Zarinpal class
      * @param string $merchantId Merchant ID for Zarinpal
+     * @param array $data Payment data including 'amount' and 'authority'
      */
     public function __construct(string $merchantId = '', array $data)
     {
@@ -44,7 +45,7 @@ class Verify
                         'Accept' => 'application/json'
                     ],
                     'json' => $json,
-                    'verify' => config('zarinpal.ssl', false)
+                    'verify' => false
                 ]);
                 $statusCode = $response->getStatusCode();
                 if ($statusCode == 200) {
@@ -53,7 +54,7 @@ class Verify
                     $this->response = json_decode($content, true);
                 }
             } catch (\Exception $e) {
-
+                // Handle exceptions if needed
             }
         }
     }
@@ -98,14 +99,23 @@ class Verify
         return null;
     }
 
+    /**
+     * Check if the payment is paid successfully
+     * @return bool
+     */
     public function isPaid()
     {
-        if (isset($this->response['code']) && $this->response['code'] == 100 && $this->response['code'] == 101) {
+        if (isset($this->response['code']) && ($this->response['code'] == 100 || $this->response['code'] == 101)) {
             return true;
         }
         return false;
     }
 
+
+    /**
+     * Get the response code
+     * @return int|null
+     */
     public function getCode()
     {
         if (isset($this->response['code'])) {
@@ -114,7 +124,10 @@ class Verify
         return null;
     }
 
-
+    /**
+     * Get the response data
+     * @return array
+     */
     public function getData()
     {
         return $this->response;
