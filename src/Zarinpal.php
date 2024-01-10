@@ -27,7 +27,7 @@ class Zarinpal
         return new Verify($this->merchantId, $array);
     }
 
-    public function request()
+    public function newPaymnet()
     {
         return new Request($this->merchantId);
     }
