@@ -64,16 +64,16 @@ class Request
     protected array $metadata;
     /**
      * Mobile number associated with the payment
-     * @var int
+     * @var string
      */
-    protected int $mobileValue;
+    protected string $mobileValue;
     /**
      * Mobile number associated with the payment
      * @var string
      */
     protected string $emailValue;
 
-    const SSL = false;
+        const SSL = false;
 
     /**
      * Constructor for Zarinpal class

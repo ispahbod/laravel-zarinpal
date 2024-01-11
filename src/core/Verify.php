@@ -105,7 +105,7 @@ class Verify
      */
     public function isPaid()
     {
-        if (isset($this->response['code']) && ($this->response['code'] == 100 || $this->response['code'] == 101)) {
+        if (isset($this->response['data']['code']) && ($this->response['data']['code'] == 100 || $this->response['data']['code'] == 101)) {
             return true;
         }
         return false;
