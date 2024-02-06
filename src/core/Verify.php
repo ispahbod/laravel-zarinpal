@@ -2,133 +2,96 @@
 
 namespace Ispahbod\Zarinpal\core;
 
+use Exception;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
 
 class Verify
 {
-    /**
-     * Merchant ID for Zarinpal
-     * @var string
-     */
-    protected string $merchantId;
-    /**
-     * Sandbox mode flag
-     * @var bool
-     */
-    protected bool $sandbox = false;
-    protected array $response = [];
-    protected Client $client;
-
-    const SSL = false;
+    private string $merchantId;
+    private bool $sandbox = false;
+    private array $response = [];
+    private Client $client;
 
     /**
-     * Constructor for Zarinpal class
-     * @param string $merchantId Merchant ID for Zarinpal
-     * @param array $data Payment data including 'amount' and 'authority'
+     * @throws Exception
      */
-    public function __construct(string $merchantId = '', array $data)
+    public function __construct(string $merchantId, int $amount, string $authority)
     {
         $this->merchantId = $merchantId;
         $this->client = new Client();
         $url = ($this->sandbox ? "https://sandbox.zarinpal.com" : "https://api.zarinpal.com") . "/pg/v4/payment/verify.json";
-        if (isset($data['amount']) && isset($data['authority'])) {
-            $json = array_filter([
-                'merchant_id' => $this->merchantId,
-                'amount' => $data['amount'],
-                'authority' => $data['authority'],
+        try {
+            $response = $this->client->post($url, [
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                    'cache-control' => 'no-cache',
+                    'Accept' => 'application/json'
+                ],
+                'json' => array_filter([
+                    'merchant_id' => $this->merchantId,
+                    'amount' => $amount,
+                    'authority' => $authority,
+                ]),
+                'verify' => false
             ]);
-            try {
-                $response = $this->client->post($url, [
-                    'headers' => [
-                        'Content-Type' => 'application/json',
-                        'cache-control' => 'no-cache',
-                        'Accept' => 'application/json'
-                    ],
-                    'json' => $json,
-                    'verify' => false
-                ]);
-                $statusCode = $response->getStatusCode();
-                if ($statusCode == 200) {
-                    $body = $response->getBody();
-                    $content = $body->getContents();
-                    $this->response = json_decode($content, true);
-                }
-            } catch (\Exception $e) {
-                // Handle exceptions if needed
+            $statusCode = $response->getStatusCode();
+            if ($statusCode == 200) {
+                $content = $response->getBody()->getContents();
+                $this->response = json_decode($content, true);
             }
+        } catch (GuzzleException $e) {
+            throw new Exception($e->getMessage());
         }
     }
 
-    public function getFee()
+    public function getFee():int|bool
     {
-        if (isset($this->response['fee'])) {
+        if (isset($this->response['fee']))
             return $this->response['fee'];
-        }
-        return null;
+        return false;
     }
 
-    public function getFeeType()
+    public function getFeeType():string|bool
     {
-        if (isset($this->response['fee_type'])) {
+        if (isset($this->response['fee_type']))
             return $this->response['fee_type'];
-        }
-        return null;
+        return false;
     }
 
     public function getCardHash()
     {
-        if (isset($this->response['card_hash'])) {
+        if (isset($this->response['card_hash']))
             return $this->response['card_hash'];
-        }
-        return null;
+        return false;
     }
 
     public function getCardPan()
     {
-        if (isset($this->response['card_pan'])) {
+        if (isset($this->response['card_pan']))
             return $this->response['card_pan'];
-        }
-        return null;
-    }
-
-    public function getRefId()
-    {
-        if (isset($this->response['ref_id'])) {
-            return $this->response['ref_id'];
-        }
-        return null;
-    }
-
-    /**
-     * Check if the payment is paid successfully
-     * @return bool
-     */
-    public function isPaid()
-    {
-        if (isset($this->response['data']['code']) && ($this->response['data']['code'] == 100 || $this->response['data']['code'] == 101)) {
-            return true;
-        }
         return false;
     }
 
-
-    /**
-     * Get the response code
-     * @return int|null
-     */
-    public function getCode()
+    public function getRefId():int|bool
     {
-        if (isset($this->response['code'])) {
-            return $this->response['code'];
-        }
-        return null;
+        if (isset($this->response['ref_id']))
+            return $this->response['ref_id'];
+        return false;
     }
-
-    /**
-     * Get the response data
-     * @return array
-     */
-    public function getData()
+    public function isPaid():bool
+    {
+        if (isset($this->response['data']['code']) && ($this->response['data']['code'] == 100 || $this->response['data']['code'] == 101))
+            return true;
+        return false;
+    }
+    public function getCode(): int|null
+    {
+        if (isset($this->response['code']))
+            return $this->response['code'];
+        return false;
+    }
+    public function getData():array
     {
         return $this->response;
     }

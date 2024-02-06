@@ -2,88 +2,35 @@
 
 namespace Ispahbod\Zarinpal\core;
 
+use Exception;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
+use InvalidArgumentException;
 
 class Request
 {
-    /**
-     * Merchant ID for Zarinpal
-     * @var string
-     */
     protected string $merchantId;
-    /**
-     * Sandbox mode flag
-     * @var bool
-     */
     protected bool $sandbox = false;
-    /**
-     * Default currency
-     * @var string
-     */
-    protected string $currency;
-
-    /**
-     * Language setting
-     * @var string
-     */
     protected string $lang;
-    /**
-     * Guzzle HTTP Client instance
-     * @var Client
-     */
     protected Client $client;
-    /**
-     * Amount value for the payment
-     * @var int
-     */
     protected int $amountValue;
-    /**
-     * Description of the payment
-     * @var string
-     */
     protected string $currencyValue = 'IRR';
-    /**
-     * Callback URL after payment
-     * @var string
-     */
     protected string $descriptionValue;
-    /**
-     * Order ID for the payment
-     * @var int
-     */
     protected string $callbackUrl;
-    /**
-     * Order ID for the payment
-     * @var int
-     */
     protected int $orderId;
-    /**
-     * Metadata associated with the payment
-     * @var array
-     */
     protected array $metadata;
-    /**
-     * Mobile number associated with the payment
-     * @var string
-     */
     protected string $mobileValue;
-    /**
-     * Mobile number associated with the payment
-     * @var string
-     */
     protected string $emailValue;
-
-        const SSL = false;
 
     /**
      * Constructor for Zarinpal class
      * @param string $merchantId Merchant ID for Zarinpal
      */
-    public function __construct(string $merchantId = '')
+    public function __construct(string $merchantId, bool $sandbox = false)
     {
-        $this->client = new Client();
         $this->merchantId = $merchantId;
-        $this->currency = 'IRR';
+        $this->sandbox = $sandbox;
+        $this->client = new Client(); // Assuming GuzzleHttp client is used
     }
 
     /**
@@ -91,7 +38,7 @@ class Request
      * @param bool $sandbox Sandbox mode flag
      * @return $this
      */
-    public function sandbox(bool $sandbox = true)
+    public function sandbox(bool $sandbox = true): Request
     {
         $this->sandbox = $sandbox;
         return $this;
@@ -101,26 +48,23 @@ class Request
      * Set the currency for the payment
      * @param string $currency Currency code (Accepted values: 'IRR' or 'IRT')
      * @return $this
-     * @throws \InvalidArgumentException If an invalid currency code is provided
+     * @throws InvalidArgumentException If an invalid currency code is provided
      */
-    public function currency(string $currency)
+    public function currency(string $currency): Request
     {
-        // Validate the provided currency code
         if ($currency !== 'IRR' && $currency !== 'IRT') {
-            throw new \InvalidArgumentException("Invalid currency code. Accepted values are 'IRR' or 'IRT'.");
+            throw new InvalidArgumentException("Invalid currency code. Accepted values are 'IRR' or 'IRT'.");
         }
-        // Set the currency value
         $this->currencyValue = $currency;
-
         return $this;
     }
 
     /**
      * Set the mobile number for the payment
-     * @param int $mobile Mobile number
+     * @param string $mobile Mobile number
      * @return $this
      */
-    public function mobile(string $mobile)
+    public function mobile(string $mobile): Request
     {
         $this->mobileValue = $mobile;
         return $this;
@@ -131,7 +75,7 @@ class Request
      * @param string $email Email address
      * @return $this
      */
-    public function email(string $email)
+    public function email(string $email): Request
     {
         $this->emailValue = $email;
         return $this;
@@ -142,7 +86,7 @@ class Request
      * @param int $id Order ID
      * @return $this
      */
-    public function order(int $id)
+    public function order(int $id): Request
     {
         $this->orderId = $id;
         return $this;
@@ -153,7 +97,7 @@ class Request
      * @param string $description Payment description
      * @return $this
      */
-    public function description(string $description)
+    public function description(string $description): Request
     {
         $this->descriptionValue = $description;
         return $this;
@@ -164,7 +108,7 @@ class Request
      * @param array $array Metadata array
      * @return $this
      */
-    public function metadata(array $array)
+    public function metadata(array $array): Request
     {
         $this->metadata = $array;
         return $this;
@@ -175,7 +119,7 @@ class Request
      * @param string $url Callback URL
      * @return $this
      */
-    public function callback(string $url)
+    public function callback(string $url): Request
     {
         $this->callbackUrl = $url;
         return $this;
@@ -186,27 +130,19 @@ class Request
      * @param mixed $amount Payment amount
      * @return $this
      */
-    public function amount($amount)
+    public function amount(int $amount): Request
     {
-        $this->amountValue = (int)$amount;
+        $this->amountValue = $amount;
         return $this;
     }
 
-    public function get()
+    /**
+     * @throws Exception
+     */
+    public function get(): Response
     {
         $url = ($this->sandbox ? "https://sandbox.zarinpal.com" : "https://api.zarinpal.com") . "/pg/v4/payment/request.json";
         $data = [];
-        $json = array_filter([
-            'merchant_id' => $this->merchantId,
-            'amount' => $this->amountValue,
-            'currency' => $this->currencyValue,
-            'description' => $this->descriptionValue ?? 'empty',
-            'callback_url' => $this->callbackUrl ?? null,
-            'metadata' => $this->metadata ?? null,
-            'mobile' => $this->mobileValue ?? null,
-            'email' => $this->emailValue ?? null,
-            'order_id' => $this->orderId ?? null,
-        ]);
         try {
             $response = $this->client->post($url, [
                 'headers' => [
@@ -214,18 +150,27 @@ class Request
                     'cache-control' => 'no-cache',
                     'Accept' => 'application/json'
                 ],
-                'json' => $json,
+                'json' => array_filter([
+                    'merchant_id' => $this->merchantId,
+                    'amount' => $this->amountValue,
+                    'currency' => $this->currencyValue,
+                    'description' => $this->descriptionValue ?? 'empty',
+                    'callback_url' => $this->callbackUrl ?? null,
+                    'metadata' => $this->metadata ?? null,
+                    'mobile' => $this->mobileValue ?? null,
+                    'email' => $this->emailValue ?? null,
+                    'order_id' => $this->orderId ?? null,
+                ]),
                 'verify' => false
             ]);
             $statusCode = $response->getStatusCode();
             if ($statusCode == 200) {
-                $body = $response->getBody();
-                $content = $body->getContents();
+                $content = $response->getBody()->getContents();
                 $data = json_decode($content, true);
             }
-        } catch (\Exception $e) {
-
+            return new Response($data);
+        }catch (GuzzleException $e) {
+            throw new Exception($e->getMessage());
         }
-        return new Response($data);
     }
 }

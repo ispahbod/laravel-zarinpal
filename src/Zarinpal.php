@@ -2,32 +2,56 @@
 
 namespace Ispahbod\Zarinpal;
 
+use Exception;
 use Ispahbod\Zarinpal\core\Request;
 use Ispahbod\Zarinpal\core\Verify;
+use InvalidArgumentException;
 
 class Zarinpal
 {
-    /**
-     * Merchant ID for Zarinpal
-     * @var string
-     */
-    protected string $merchantId;
+    private string $merchantId;
 
     /**
-     * Constructor for Zarinpal class
-     * @param string $merchantId Merchant ID for Zarinpal
+     * Constructs a new Zarinpal instance with the provided merchant ID.
+     *
+     * @param string $merchantId The merchant ID for Zarinpal transactions.
+     * @throws InvalidArgumentException If the merchant ID is not valid.
      */
-    public function __construct($merchant_id)
+    public function __construct(string $merchantId)
     {
-        $this->merchantId = $merchant_id;
+        if (empty($merchantId)) {
+            throw new InvalidArgumentException('Merchant ID cannot be empty.');
+        }
+        $this->merchantId = $merchantId;
     }
 
-    public function verify(array $array)
+    /**
+     * Verifies a payment transaction.
+     *
+     * @param int $amount The amount of the transaction to verify.
+     * @param string $authority The authority code received after payment request.
+     * @return Verify The verification request instance.
+     * @throws InvalidArgumentException If any input is empty.
+     * @throws Exception If verification process encounters an error.
+     */
+    public function verify(int $amount, string $authority): Verify
     {
-        return new Verify($this->merchantId, $array);
+        if (empty($amount) || empty($authority)) {
+            throw new InvalidArgumentException("Validation failed: 'amount' and 'authority' cannot be empty.");
+        }
+        try {
+            return new Verify($this->merchantId, $amount, $authority);
+        } catch (Exception $e) {
+            throw new Exception("Verification failed: " . $e->getMessage());
+        }
     }
 
-    public function newPaymnet()
+    /**
+     * Creates a new payment request.
+     *
+     * @return Request The payment request instance.
+     */
+    public function payment(): Request
     {
         return new Request($this->merchantId);
     }
